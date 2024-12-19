@@ -1,6 +1,6 @@
 <template>
   <div class="calculator">
-    <h1>dB计算器</h1>
+    <h1>dB计算器喵</h1>
     <el-form :model="form" label-width="180px">
       <el-form-item label="灵敏度 (dB/mW)">
         <el-input
