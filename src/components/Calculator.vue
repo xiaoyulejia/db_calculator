@@ -38,6 +38,18 @@
         </el-radio-group>
       </el-form-item>
 
+      <el-form-item label="声压级 (Pa)">
+        <el-input
+          v-model.number="form.soundPressureLevel"
+          type="number"
+          placeholder="请输入声压级"
+        />
+        <el-radio-group v-model="form.soundPressureUnit" class="unit-radio-group" @change="calculate">
+          <el-radio label="Pa">Pa</el-radio>
+          <el-radio label="μPa">μPa</el-radio>
+        </el-radio-group>
+      </el-form-item>
+
       <el-form-item>
         <!-- 按钮禁用状态 -->
         <el-button 
@@ -78,9 +90,11 @@ export default defineComponent({
       sensitivity: 98, // 默认灵敏度 dB/mW
       impedance: 32, // 默认阻抗 Ω
       loudness: 110, // 默认响度 dB
+      soundPressureLevel: 0.00002, // 默认声压级 (Pa)
       sensitivityUnit: "dB/mW", // 默认灵敏度单位
       impedanceUnit: "Ω", // 默认阻抗单位
       loudnessUnit: "dB", // 默认响度单位
+      soundPressureUnit: "Pa", // 默认声压级单位
     });
 
     const results = ref<{ power: number; voltage: number; current: number } | null>(null);
@@ -109,6 +123,12 @@ export default defineComponent({
         loudness -= 94; // dB SPL 和 dB 的差值是 94dB
       }
 
+      // 如果声压级单位为μPa，将其转换为Pa
+      let soundPressureLevel = form.value.soundPressureLevel;
+      if (form.value.soundPressureUnit === "μPa") {
+        soundPressureLevel /= 1000000; // 将 μPa 转换为 Pa
+      }
+
       let power = Math.pow(10, (loudness - sensitivity) / 10);
       let voltage = Math.sqrt(power * impedance);
       let current = voltage / impedance * 1000;
@@ -118,9 +138,14 @@ export default defineComponent({
       isCalculating.value = false; // 计算完成后重新启用按钮
     };
 
-    // 监听敏感度、响度和阻抗的单位变化，自动触发计算
+    // 监听敏感度、响度、阻抗和声压级的单位变化，自动触发计算
     watch(
-      () => [form.value.sensitivityUnit, form.value.loudnessUnit, form.value.impedanceUnit],
+      () => [
+        form.value.sensitivityUnit,
+        form.value.loudnessUnit,
+        form.value.impedanceUnit,
+        form.value.soundPressureUnit,
+      ],
       () => {
         results.value = null; // 清除之前的结果
         calculate(); // 触发重新计算
@@ -139,7 +164,7 @@ export default defineComponent({
 </script>
 
 <style scoped>
- .calculator {
+.calculator {
   display: flex;
   justify-content: space-between; /* 使内容横向排列 */
   max-width: 1000px; /* 最大宽度，确保横向布局不会过于压缩 */
@@ -202,6 +227,4 @@ export default defineComponent({
     width: 100%; /* 确保表单区域宽度占满 */
   }
 }
-
-
 </style>
